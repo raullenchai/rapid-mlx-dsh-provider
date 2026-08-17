@@ -16,8 +16,26 @@
     "@deepseek-ai/dsh-llm": "^0.1.0-rc.7"
   },
   "files": [
-    "lib",
+    "LICENSE",
+    "README.md",
     "cordis.patch.yml",
-    "README.md"
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/raullenchai/rapid-mlx-dsh-provider.git"
+  },
+  "bugs": {
+    "url": "https://github.com/raullenchai/rapid-mlx-dsh-provider/issues"
+  },
+  "homepage": "https://github.com/raullenchai/rapid-mlx-dsh-provider#readme",
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "rapid-mlx",
+    "mlx",
+    "apple-silicon",
+    "local-llm",
+    "cordis-plugin"
   ]
 }
