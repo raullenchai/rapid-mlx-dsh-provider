@@ -56,7 +56,10 @@ Needs Node ≥ 22.15 (dsh imports Node's Zstd stream API without declaring it)
 and a running Rapid-MLX server.
 
 ```sh
-dsh plugin --profile web add @rapid-mlx/dsh-provider   # once published
+# Installs and activates straight from source — no npm publish needed,
+# because the package ships plain JS with no build step.
+dsh plugin --profile web add github:raullenchai/rapid-mlx-dsh-provider
+
 export RAPID_MLX_BASE_URL=http://localhost:8000/v1     # optional; this is the default
 dsh web
 ```
@@ -70,7 +73,8 @@ agent-default-model:
   model: qwen3.6-35b-8bit
 ```
 
-Until it is on npm, add it from a local checkout — see
+Verified: that command installs and activates as a profile layer against
+`dsh 0.1.0-rc.7`. To hack on it locally instead, see
 [Local development](#local-development).
 
 ## Verified
