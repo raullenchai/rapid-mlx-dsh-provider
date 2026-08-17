@@ -47,8 +47,42 @@ jobs:
       - name: The bundle patch must be a loadable entry list
         run: |
           set -euo pipefail
-          npx --yes js-yaml cordis.patch.yml > /dev/null
-          echo "cordis.patch.yml parses"
+          # Pinned to v4: v5 reworked the custom-tag API (Type/extend ->
+          # defineScalarTag/Schema) and this is a lint helper, not a dependency
+          # of the shipped package.
+          npm install --no-save --no-audit --no-fund js-yaml@^4 >/dev/null 2>&1
+          node -e '
+            const yaml = require("js-yaml");
+            const fs = require("fs");
+            // `!!js` is a DSH-specific tag (its loader evaluates the
+            // expression at boot). Plain js-yaml rejects it, so declare it
+            // as an opaque scalar — we are checking the document is
+            // well-formed, not evaluating it.
+            const JS = new yaml.Type("tag:yaml.org,2002:js", {
+              kind: "scalar",
+              construct: (data) => String(data ?? ""),
+            });
+            const schema = yaml.DEFAULT_SCHEMA.extend([JS]);
+            const doc = yaml.load(fs.readFileSync("cordis.patch.yml", "utf8"), { schema });
+            if (!Array.isArray(doc)) {
+              console.error("cordis.patch.yml must be a top-level ARRAY of patch entries");
+              process.exit(1);
+            }
+            // The whole point of the file is the insert list; an empty
+            // document would install a plugin that activates nothing.
+            const inserts = doc.flatMap((e) => e?.insert ?? []);
+            if (!inserts.length) {
+              console.error("no `insert` entries — this bundle would activate nothing");
+              process.exit(1);
+            }
+            for (const e of inserts) {
+              if (!e?.id || !e?.name) {
+                console.error("every insert entry needs both id and name:", JSON.stringify(e));
+                process.exit(1);
+              }
+            }
+            console.log(`cordis.patch.yml OK — inserts: ${inserts.map((e) => e.id).join(", ")}`);
+          '
 
       - name: Refuse to publish by accident
         run: |
