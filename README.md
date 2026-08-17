@@ -32,6 +32,20 @@ adapter for the route's context capacity and multiplies it by `thresholdRatio`
 at the wrong time in every long session — and on a Mac the binding constraint is
 unified memory, not the number the checkpoint advertises.
 
+### The engine side guards these fields
+
+Living in its own repo means a rename in Rapid-MLX would break this package
+silently — nothing there imports it and this CI does not run there. So the
+fields are pinned on the side that owns them, by
+`tests/test_model_card_client_contract.py` in `raullenchai/Rapid-MLX`, which
+names this package as the reason. It pins the wire *shape* — the field names,
+their nullability, and the fact that `ModelInfo` does not set `exclude_none`
+(which is what makes `"reasoning_parser": null` distinguishable from an old
+server that omits the key).
+
+**If you start reading a new `/v1/models` field here, add it there too.**
+Otherwise the guard silently stops covering what this package actually uses.
+
 ## Verified locally
 
 Against `dsh 0.1.0-rc.7` on an M3 Ultra:
