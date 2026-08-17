@@ -1,0 +1,65 @@
+name: CI
+
+# Deliberately light. This package is 366 lines of adapter against a
+# developer-preview host; the expensive verification is a real `dsh` run
+# against a real rapid-mlx server on Apple Silicon, which no hosted runner
+# can do. What CI can do is stop a syntax error or a malformed manifest
+# from ever reaching a `dsh plugin add`.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.15'   # the Zstd-stream floor dsh needs
+
+      - name: Parse every shipped module
+        run: |
+          set -euo pipefail
+          find lib -name '*.js' -print0 | xargs -0 -n1 node --check
+          echo "all modules parse"
+
+      - name: The manifest must still declare a dsh bundle
+        run: |
+          set -euo pipefail
+          node -e '
+            const p = require("./package.json");
+            const patch = p?.dsh?.bundle?.patch;
+            if (!patch) {
+              console.error("package.json lost dsh.bundle.patch — dsh would install this");
+              console.error("as an inert dependency and only WARN about it. See README.");
+              process.exit(1);
+            }
+            const fs = require("fs");
+            if (!fs.existsSync(patch)) {
+              console.error(`dsh.bundle.patch points at ${patch}, which does not exist`);
+              process.exit(1);
+            }
+            console.log(`dsh.bundle.patch -> ${patch} (present)`);
+          '
+
+      - name: The bundle patch must be a loadable entry list
+        run: |
+          set -euo pipefail
+          npx --yes js-yaml cordis.patch.yml > /dev/null
+          echo "cordis.patch.yml parses"
+
+      - name: Refuse to publish by accident
+        run: |
+          set -euo pipefail
+          node -e '
+            const p = require("./package.json");
+            if (p.private !== true) {
+              console.error("package.json is no longer private. This package tracks a");
+              console.error("developer preview and is not ready for npm — remove this");
+              console.error("check deliberately in the PR that decides to publish.");
+              process.exit(1);
+            }
+            console.log("private: true — npm publish is blocked");
+          '

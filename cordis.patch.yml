@@ -1,0 +1,16 @@
+# The @rapid-mlx/dsh-provider bundle patch.
+#
+# One insert: our adapter plugin. It registers the `rapid-mlx` provider
+# route with ctx.llm, so it must load after dsh-base has installed the llm
+# service — being a bundle layer applied over dsh-base gives us that for
+# free, and `inject: ['llm']` in the plugin makes cordis enforce it.
+#
+# We deliberately do NOT patch `llm-pi-ai` here. A user who already reaches
+# rapid-mlx through the generic openai-completions provider keeps working;
+# this adds a second, better-informed route beside it rather than seizing
+# the one they configured.
+- insert:
+    - id: rapid-mlx-provider
+      name: '@rapid-mlx/dsh-provider'
+      config:
+        baseURL: !!js process.env.RAPID_MLX_BASE_URL || 'http://localhost:8000/v1'

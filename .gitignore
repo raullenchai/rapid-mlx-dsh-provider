@@ -1,0 +1,5 @@
+# Dev-only peer-dep symlinks into a local dsh installation (see README).
+# Never shipped: package.json "files" excludes it.
+node_modules/
+*.tgz
+.DS_Store
