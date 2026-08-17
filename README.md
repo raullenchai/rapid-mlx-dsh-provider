@@ -101,10 +101,31 @@ says and some of it is still only read:
   *advertised* context window. On a Mac the real ceiling is unified memory, and
   reporting that instead is the biggest remaining win — it needs Rapid-MLX to
   expose a usable-capacity figure first.
-- Images are not carried through `stream()`; text, reasoning and tool calls are.
+- Images are not carried through `stream()` — but they now **refuse** with
+  `LlmError(..., 'UNSUPPORTED')` rather than being dropped, per the cookbook.
+  Text, reasoning and tool calls are carried.
 - The route is registered as `rapid-mlx`. If your `settings.yaml` also declares
   a `rapid-mlx` provider under `llm-pi-ai`, the two compete for one route name
   (`registerAdapter` owns provider exclusivity). Use one or rename ours.
+
+## Conformance with the official adapter contract
+
+Built against
+[`docs/cookbook/adding-an-llm-adapter.md`](https://github.com/deepseek-ai/deepseek-harness/blob/main/docs/cookbook/adding-an-llm-adapter.md)
+and its "protocol obligations" section. Each item has a test:
+
+| Obligation | How it is met |
+|---|---|
+| `usage` before `finish`, nothing after `finish` | usage is buffered and flushed at end-of-stream, so a trailing usage-only chunk cannot reorder it |
+| Tool-call `arguments` are raw JSON strings end to end | fragments stream as `argumentsDelta` and reassemble unparsed |
+| Block indexes in first-seen order, reused per block | verified across a reasoning-then-text response |
+| Errors take exactly two sanctioned paths | transport/protocol failures **throw** `LlmError` with a stable code; nothing ends the stream quietly |
+| Honor `options.signal` | passed to `fetch` and to the SSE reader; an `AbortError` is re-thrown unchanged, not reclassified |
+| A field the provider cannot honor throws `UNSUPPORTED` | image content refuses instead of being narrowed away |
+| Config is a schemastery schema with env fallback | `export const Config`, fed from `cordis.patch.yml` via `!!js process.env.RAPID_MLX_BASE_URL` |
+
+`finish.replayState` is not emitted: Rapid-MLX needs no native response ids
+or signatures on follow-up calls, so there is nothing lossless to project.
 
 ## Three things worth knowing before you edit this
 

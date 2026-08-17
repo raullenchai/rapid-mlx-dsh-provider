@@ -241,3 +241,57 @@ test('several results in one message become several tool messages', () => {
     ],
   )
 })
+
+// --------------------------------------------------------------------------
+// Protocol obligations from docs/cookbook/adding-an-llm-adapter.md.
+//
+// The rule these cover: "A GenerateOptions field your provider cannot
+// honor: throw LlmError(..., 'UNSUPPORTED') rather than silently dropping
+// it." That applies to content too — an image dropped on the way out
+// reaches the model as a request that never mentions the picture the user
+// attached, and the answer comes back confidently about nothing.
+// --------------------------------------------------------------------------
+
+test('image content is refused, not silently narrowed to its text parts', () => {
+  const withImage = [
+    {
+      role: 'user',
+      content: [
+        { type: 'text', text: 'what is in this picture?' },
+        { type: 'image', image: 'data:image/png;base64,AAAA' },
+      ],
+    },
+  ]
+  assert.throws(
+    () => toOpenAiMessages(withImage),
+    (err) => err.code === 'UNSUPPORTED' && /image/i.test(err.message),
+    'dropping the image would send a question about a picture the model never received',
+  )
+})
+
+test('the refusal carries the contract code so a caller can route on it', () => {
+  try {
+    toOpenAiMessages([{ role: 'user', content: [{ type: 'image', image: 'x' }] }])
+    assert.fail('should have thrown')
+  } catch (err) {
+    // "route on this, never by parsing message"
+    assert.equal(err.code, 'UNSUPPORTED')
+    assert.equal(err.name, 'UnsupportedContentError')
+  }
+})
+
+test('text-only content still passes cleanly', () => {
+  const out = toOpenAiMessages([{ role: 'user', content: [{ type: 'text', text: 'fine' }] }])
+  assert.equal(out[0].content, 'fine')
+})
+
+test('buildRequestBody surfaces the refusal rather than shipping a partial body', () => {
+  assert.throws(
+    () =>
+      buildRequestBody({
+        model: 'm',
+        messages: [{ role: 'user', content: [{ type: 'image', image: 'x' }] }],
+      }),
+    (err) => err.code === 'UNSUPPORTED',
+  )
+})
