@@ -15,12 +15,20 @@ export default [
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: 'module',
+      // Node's web-standard globals. Listed explicitly rather than pulled
+      // from a preset so that a genuinely undefined identifier still
+      // stands out — the whole value of this config is that the list is
+      // short enough to read.
       globals: {
         fetch: 'readonly',
         console: 'readonly',
         process: 'readonly',
+        globalThis: 'readonly',
         TextDecoder: 'readonly',
+        TextEncoder: 'readonly',
         AbortSignal: 'readonly',
+        Response: 'readonly',
+        ReadableStream: 'readonly',
       },
     },
     rules: {
