@@ -37,5 +37,12 @@
     "apple-silicon",
     "local-llm",
     "cordis-plugin"
-  ]
+  ],
+  "scripts": {
+    "lint": "eslint .",
+    "test": "node --test test/*.test.js"
+  },
+  "devDependencies": {
+    "eslint": "^9"
+  }
 }

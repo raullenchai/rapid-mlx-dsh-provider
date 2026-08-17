@@ -25,6 +25,18 @@ jobs:
           find lib -name '*.js' -print0 | xargs -0 -n1 node --check
           echo "all modules parse"
 
+      - name: Lint (no-undef — a free identifier that only fails at runtime)
+        run: |
+          npm install --no-save --no-audit --no-fund eslint@^9 >/dev/null 2>&1
+          npx eslint .
+
+      - name: Unit tests
+        # lib/request.js imports nothing, so the request-mapping tests run
+        # here without installing the dsh peer dep. They cover the two bug
+        # classes that do not raise anything when they regress: a dropped
+        # GenerateOptions field, and a mis-mapped tool result.
+        run: npm test
+
       - name: The manifest must still declare a dsh bundle
         run: |
           set -euo pipefail
