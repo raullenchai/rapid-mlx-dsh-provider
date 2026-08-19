@@ -1,4 +1,4 @@
-# @rapid-mlx/dsh-provider
+# @raullenchai/dsh-provider
 
 A native [Rapid-MLX](https://github.com/raullenchai/Rapid-MLX) provider for
 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) — so `dsh`
@@ -7,10 +7,14 @@ gets its model facts from the server instead of from whatever you typed into
 
 [![CI](https://github.com/raullenchai/rapid-mlx-dsh-provider/actions/workflows/ci.yml/badge.svg)](https://github.com/raullenchai/rapid-mlx-dsh-provider/actions/workflows/ci.yml)
 
-> **Status: working skeleton, not on npm.** Verified end-to-end against
-> `dsh 0.1.0-rc.7`, and deliberately unpublished (`private: true`, CI enforces
-> it). DSH is a developer preview that moved rc.6 → rc.7 in days; this repo is
-> here to prove the integration, not to carry a compatibility promise yet.
+> **Status: published to npm** as
+> [`@raullenchai/dsh-provider`](https://www.npmjs.com/package/@raullenchai/dsh-provider).
+> The end-to-end `dsh` run in [Verified](#verified) was on an M3 Ultra against
+> `dsh 0.1.0-rc.7`; `dsh 0.1.0-rc.8` is API-compatible — the `LlmAdapter`
+> contract is byte-identical and the only changes are additive — and the
+> adapter is re-verified against rc.8 at the protocol and unit-test level.
+> DSH is still a developer preview that moves fast, so treat this as tracking
+> a moving target, not a frozen compatibility promise.
 
 ## What it does for you
 
@@ -56,8 +60,10 @@ Needs Node ≥ 22.15 (dsh imports Node's Zstd stream API without declaring it)
 and a running Rapid-MLX server.
 
 ```sh
-# Installs and activates straight from source — no npm publish needed,
-# because the package ships plain JS with no build step.
+# From npm:
+dsh plugin --profile web add @raullenchai/dsh-provider
+
+# …or straight from source — the package ships plain JS with no build step:
 dsh plugin --profile web add github:raullenchai/rapid-mlx-dsh-provider
 
 export RAPID_MLX_BASE_URL=http://localhost:8000/v1     # optional; this is the default

@@ -1,11 +1,13 @@
 {
-  "name": "@rapid-mlx/dsh-provider",
-  "version": "0.0.0-local",
-  "private": true,
-  "description": "Native Rapid-MLX provider for DeepSeek Harness \u2014 teaches DSH what the local server already knows.",
+  "name": "@raullenchai/dsh-provider",
+  "version": "0.1.0",
+  "description": "Native Rapid-MLX provider for DeepSeek Harness — teaches DSH what the local server already knows.",
   "type": "module",
   "main": "lib/index.js",
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
@@ -13,7 +15,7 @@
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
-    "@deepseek-ai/dsh-llm": "^0.1.0-rc.7",
+    "@deepseek-ai/dsh-llm": "^0.1.0-rc.8",
     "@deepseek-ai/schemastery": "^3.18.1"
   },
   "files": [

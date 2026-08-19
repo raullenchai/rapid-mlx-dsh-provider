@@ -35,7 +35,7 @@ jobs:
         # against real LlmError codes. Without the peers it would skip, and
         # a protocol test that silently does not run is worse than none.
         run: npm install --no-save --no-audit --no-fund
-          @deepseek-ai/dsh-llm@^0.1.0-rc.7 @deepseek-ai/schemastery@^3.18.1
+          @deepseek-ai/dsh-llm@^0.1.0-rc.8 @deepseek-ai/schemastery@^3.18.1
 
       - name: Unit tests
         # lib/request.js imports nothing, so the request-mapping tests run
@@ -103,16 +103,25 @@ jobs:
             console.log(`cordis.patch.yml OK — inserts: ${inserts.map((e) => e.id).join(", ")}`);
           '
 
-      - name: Refuse to publish by accident
+      - name: The manifest must stay publish-ready
+        # Inverse of the old "refuse to publish" guard: this package is now
+        # published to npm, so a stray `private: true` or a placeholder
+        # `0.0.0-local` version would silently break the next `npm publish`.
         run: |
           set -euo pipefail
           node -e '
             const p = require("./package.json");
-            if (p.private !== true) {
-              console.error("package.json is no longer private. This package tracks a");
-              console.error("developer preview and is not ready for npm — remove this");
-              console.error("check deliberately in the PR that decides to publish.");
+            if (p.private === true) {
+              console.error("package.json is private again — npm publish would refuse it.");
               process.exit(1);
             }
-            console.log("private: true — npm publish is blocked");
+            if (!/^\d+\.\d+\.\d+/.test(p.version) || p.version.includes("local")) {
+              console.error(`version "${p.version}" is not a real release version`);
+              process.exit(1);
+            }
+            if (p.publishConfig?.access !== "public") {
+              console.error("publishConfig.access must be \"public\" for a scoped package");
+              process.exit(1);
+            }
+            console.log(`publish-ready: ${p.name}@${p.version} (access ${p.publishConfig.access})`);
           '
