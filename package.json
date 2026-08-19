@@ -1,7 +1,7 @@
 {
   "name": "@raullenchai/dsh-provider",
-  "version": "0.2.0",
-  "description": "Native Rapid-MLX provider for DeepSeek Harness — teaches DSH what the local server already knows, plus model-management tools and a /rapid-mlx overview.",
+  "version": "0.3.0",
+  "description": "Native Rapid-MLX provider for DeepSeek Harness — teaches DSH what the local server already knows (memory-fitted context via max_model_len), plus model-management tools and a /rapid-mlx overview.",
   "type": "module",
   "main": "lib/index.js",
   "license": "Apache-2.0",

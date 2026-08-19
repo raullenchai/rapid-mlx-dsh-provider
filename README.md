@@ -46,13 +46,16 @@ no stale numbers.
 actually has a reasoning parser. A model that can't reason no longer shows an
 off/low/medium/high selector that does nothing.
 
-**3. Compaction is timed with the model's real context window, not a number
-that drifted.** This is the one that quietly costs you. `dsh-compaction-basic`
-asks the provider for the route's capacity and compacts at
-`thresholdRatio × capacity` (0.8 by default). If your hand-written
-`contextWindow` is stale or copied from another model, every long session
-compacts at the wrong point — too early and you lose context you had room for,
-too late and you hit the wall.
+**3. Compaction is timed with the capacity that actually fits this Mac, not a
+number that drifted.** This is the one that quietly costs you.
+`dsh-compaction-basic` asks the provider for the route's capacity and compacts
+at `thresholdRatio × capacity` (0.8 by default). The provider prefers the
+server's **`max_model_len`** — Rapid-MLX's memory-fitted ceiling (what fits in
+unified memory: weights + KV cache), in the vLLM/SGLang-standard field — over
+the native `context_window`, and falls back to `context_window` on an older
+server that doesn't report it. So compaction is timed to what the machine can
+actually hold, not the model's advertised window (which it may not have room
+for) and not a hand-written number copied from another model.
 
 ## Install
 

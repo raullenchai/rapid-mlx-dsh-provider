@@ -7,7 +7,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
-import { parseCached, parseSize } from '../lib/cli.js'
+import { parseCached, parseSize, normalizeCachedJson, formatAge } from '../lib/cli.js'
 import { fetchServed, checkHealth } from '../lib/management.js'
 import { renderServed, renderCached, renderHealth, renderOperation, formatBytes } from '../lib/tools.js'
 
@@ -84,6 +84,47 @@ function servedBody() {
 }
 
 const okFetch = (body) => async () => ({ ok: true, json: async () => body })
+
+test('normalizeCachedJson maps the --json payload to the internal shape', () => {
+  const payload = {
+    cached: [
+      { alias: 'q', repo: 'org/Q', size_bytes: 5_000_000_000, age_seconds: 7200, state: 'ok', external: false },
+      { alias: null, repo: 'org/R', size_bytes: 1_000_000, age_seconds: 30, state: 'unmapped', external: false },
+    ],
+    count: 2,
+    total_bytes: 5_001_000_000,
+  }
+  const out = normalizeCachedJson(payload)
+  assert.equal(out.count, 2)
+  assert.equal(out.totalBytes, 5_001_000_000)
+  assert.equal(out.models[0].alias, 'q')
+  assert.equal(out.models[0].sizeBytes, 5_000_000_000)
+  assert.equal(out.models[0].modified, '2h ago')
+  assert.equal(out.models[1].state, 'unmapped')
+  assert.equal(out.models[1].alias, null)
+  assert.equal(out.models[1].modified, '0m ago')
+})
+
+test('formatAge renders compact deltas', () => {
+  assert.equal(formatAge(30), '0m ago')
+  assert.equal(formatAge(7200), '2h ago')
+  assert.equal(formatAge(2 * 86400), '2d ago')
+  assert.equal(formatAge(undefined), '')
+})
+
+test('fetchServed surfaces max_model_len when present', async () => {
+  const body = servedBody()
+  body.data.forEach((e) => (e.max_model_len = 12000))
+  const served = await fetchServed('http://x/v1', okFetch(body))
+  assert.equal(served[0].maxModelLen, 12000)
+})
+
+test('renderServed shows the memory-fit ceiling only when tighter than native', () => {
+  const tight = [{ alias: 'q', repo: 'org/Q', contextWindow: 40960, maxModelLen: 12000, capabilities: [] }]
+  assert.match(renderServed({ models: tight }), /12,000 ctx \(memory-fit of 40,960\)/)
+  const loose = [{ alias: 'q', repo: 'org/Q', contextWindow: 40960, maxModelLen: 40960, capabilities: [] }]
+  assert.match(renderServed({ models: loose }), /40,960 ctx(?!.*memory-fit)/)
+})
 
 test('fetchServed folds the duplicate id entries into one model', async () => {
   const served = await fetchServed('http://x/v1', okFetch(servedBody()))
