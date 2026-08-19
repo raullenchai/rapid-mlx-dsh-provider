@@ -14,3 +14,6 @@
       name: '@raullenchai/dsh-provider'
       config:
         baseURL: !!js process.env.RAPID_MLX_BASE_URL || 'http://localhost:8000/v1'
+        # The rapid-mlx CLI used for pull/remove/cached (the HTTP API has no
+        # equivalent). A name is resolved on PATH; an absolute path also works.
+        cliCommand: !!js process.env.RAPID_MLX_CLI || 'rapid-mlx'

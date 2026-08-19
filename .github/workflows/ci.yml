@@ -36,6 +36,8 @@ jobs:
         # a protocol test that silently does not run is worse than none.
         run: npm install --no-save --no-audit --no-fund
           @deepseek-ai/dsh-llm@^0.1.0-rc.8 @deepseek-ai/schemastery@^3.18.1
+          @deepseek-ai/dsh-tools@^0.1.0-rc.8 @deepseek-ai/dsh-commands@^0.1.0-rc.8
+          @deepseek-ai/dsh-subprocess@^0.1.0-rc.8
 
       - name: Unit tests
         # lib/request.js imports nothing, so the request-mapping tests run

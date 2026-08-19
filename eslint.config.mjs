@@ -27,8 +27,11 @@ export default [
         TextDecoder: 'readonly',
         TextEncoder: 'readonly',
         AbortSignal: 'readonly',
+        AbortController: 'readonly',
         Response: 'readonly',
         ReadableStream: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
       },
     },
     rules: {
