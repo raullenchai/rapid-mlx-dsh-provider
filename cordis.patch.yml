@@ -1,4 +1,4 @@
-# The @rapid-mlx/dsh-provider bundle patch.
+# The @raullenchai/dsh-provider bundle patch.
 #
 # One insert: our adapter plugin. It registers the `rapid-mlx` provider
 # route with ctx.llm, so it must load after dsh-base has installed the llm
@@ -11,6 +11,6 @@
 # the one they configured.
 - insert:
     - id: rapid-mlx-provider
-      name: '@rapid-mlx/dsh-provider'
+      name: '@raullenchai/dsh-provider'
       config:
         baseURL: !!js process.env.RAPID_MLX_BASE_URL || 'http://localhost:8000/v1'
