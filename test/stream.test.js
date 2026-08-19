@@ -30,6 +30,12 @@ function makeAdapter(baseURL = 'http://127.0.0.1:1/v1') {
           adapter = instance
         },
       },
+      // apply() also mounts the management tools and /rapid-mlx command; these
+      // stubs let it complete without exercising that surface (covered in
+      // management.test.js).
+      tools: { register() {} },
+      commands: { register() {} },
+      subprocess: {},
       logger: { info() {} },
     },
     { baseURL },

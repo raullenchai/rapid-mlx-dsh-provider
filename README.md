@@ -83,6 +83,32 @@ Verified: that command installs and activates as a profile layer against
 `dsh 0.1.0-rc.7`. To hack on it locally instead, see
 [Local development](#local-development).
 
+## Model management (v0.2.0)
+
+Beyond the provider route, the plugin registers five tools and a `/rapid-mlx`
+command so the agent can see and manage models without leaving the session.
+The split follows which surface actually owns each fact: served-model facts
+come from the structured HTTP `/v1/models`; the download cache and pull/remove
+are CLI-only, so those — and only those — shell out to `rapid-mlx` through the
+harness subprocess seam.
+
+| Tool | Source | What it does |
+|---|---|---|
+| `rapid_mlx_serving` | HTTP `/v1/models` | The model(s) served right now, deduped, with context window, reasoning/tool parsers, MoE/hybrid, and modalities. |
+| `rapid_mlx_cached` | `rapid-mlx models --cached` | Downloaded models and their on-disk size. |
+| `rapid_mlx_pull` | `rapid-mlx pull <name>` | Download a model (alias or HF repo id). Cancellable; no fixed deadline. |
+| `rapid_mlx_remove` | `rapid-mlx rm -y <name>` | Delete a cached model to free disk. |
+| `rapid_mlx_health` | HTTP + `rapid-mlx --version` | API up? CLI reachable? Reported as two independent facts. |
+
+`/rapid-mlx` prints a one-shot overview: health, the served model and its facts,
+and total cache disk usage.
+
+The CLI is resolved from the `cliCommand` config (default `rapid-mlx` on
+`PATH`, or `$RAPID_MLX_CLI`); set it to an absolute path if the binary is not on
+the harness's `PATH`. `rapid_mlx_pull`/`rapid_mlx_remove` are the only tools
+that change anything on disk, and they run non-interactively (`rm` is forced
+with `-y` because the subprocess seam ignores stdin).
+
 ## Verified
 
 Against `dsh 0.1.0-rc.7` on an M3 Ultra:
